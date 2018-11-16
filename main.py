@@ -118,7 +118,7 @@ def main():
                 hostname = platform.node()
                 print hostname
                 print core.REGISTRY
-                push_to_gateway('<IP>:9091', job=hostname, registry=core.REGISTRY)
+                # push_to_gateway('0.0.0.0:9091', job=hostname, registry=core.REGISTRY)
                 log.info('Push complete.')
 
 
