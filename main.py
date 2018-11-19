@@ -22,11 +22,13 @@ async def compute_gpu_stat(gpu_id):
     handle = nvmlDeviceGetHandleByIndex(gpu_id)
     while True:
         mem_info = nvmlDeviceGetMemoryInfo(handle)
+        logging.info('Memory information = %s', str(mem_info))
         total_fb_memory.labels(host=hostname, device=gpu_id).set(mem_info.total / 1024)
         free_fb_memory.labels(host=hostname, device=gpu_id).set(mem_info.free / 1024)
         used_fb_memory.labels(host=hostname, device=gpu_id).set(mem_info.used / 1024)
 
         utilization = nvmlDeviceGetUtilizationRates(handle)
+        logging.info('Utilization statistics = %s', str(utilization))
         gpu_utilization.labels(host=hostname, device=gpu_id).set(utilization.gpu / 100.0)
         memory_utilization.labels(host=hostname, device=gpu_id).set(utilization.memory / 100.0)
 
