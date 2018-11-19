@@ -9,33 +9,28 @@ from pynvml import *
 format = "%(asctime)s - %(levelname)s [%(name)s] %(threadName)s %(message)s"
 logging.basicConfig(level=logging.INFO, format=format)
 
-total_fb_memory = Gauge('gpu_total_fb_memory_mb', 'Total installed frame buffer memory (in ''megabytes)', ['device'])
-free_fb_memory = Gauge('gpu_free_fb_memory_mb', 'Unallocated frame buffer memory (in ''megabytes)', ['device'])
-used_fb_memory = Gauge('gpu_used_fb_memory_mb', 'Allocated frame buffer memory (in megabytes).'' Note that the diver/GPU will always set ''a small amount of memory fore bookkeeping.', ['device'])
-gpu_utilization = Gauge('gpu_utilization_pct', 'Percent of time over the past sample period ''during which one or more kernels was ''executing on the GPU.', ['device'])
-memory_utilization = Gauge('gpu_mem_utilization_pct', 'Percent of time over the past sample ''period during which global (device) memory ''was being read or written', ['device'])
+total_fb_memory = prom.Gauge('gpu_total_fb_memory_mb', 'Total installed frame buffer memory (in ''megabytes)', ['host', 'device'])
+free_fb_memory = prom.Gauge('gpu_free_fb_memory_mb', 'Unallocated frame buffer memory (in ''megabytes)', ['host', 'device'])
+used_fb_memory = prom.Gauge('gpu_used_fb_memory_mb', 'Allocated frame buffer memory (in megabytes).'' Note that the diver/GPU will always set ''a small amount of memory fore bookkeeping.', ['host', 'device'])
+gpu_utilization = prom.Gauge('gpu_utilization_pct', 'Percent of time over the past sample period ''during which one or more kernels was ''executing on the GPU.', ['host', 'device'])
+memory_utilization = prom.Gauge('gpu_mem_utilization_pct', 'Percent of time over the past sample ''period during which global (device) memory ''was being read or written', ['host', 'device'])
 
-async def compute_rate(name, rate, delta_min=-100, delta_max=100):
-    """Increases or decreases a rate based on a random delta value
-    which varies from "delta_min" to "delta_max".
-    :name: task_id
-    :rate: initial rate value
-    :delta_min: lowest delta variation
-    :delta_max: highest delta variation
-    """
-    while True:
-        logging.info("name: {} value {}".format(name, rate))
-        g1.labels(task_name=name).set(rate)
-        rate += random.randint(delta_min, delta_max)
-        await asyncio.sleep(1)
+with open('/host/etc/hostname', 'r') as f:
+    hostname = f.readline().strip()
 
 async def compute_gpu_stat(gpu_id):
     handle = nvmlDeviceGetHandleByIndex(gpu_id)
     while True:
-        utilization = nvmlDeviceGetUtilizationRates(handle)
-        g1.labels(task_name='zs').set(utilization.gpu / 100.0)
+        mem_info = nvmlDeviceGetMemoryInfo(handle)
+        total_fb_memory.labels(host=hostname, device=gpu_id).set(mem_info.total / 1024)
+        free_fb_memory.labels(host=hostname, device=gpu_id).set(mem_info.free / 1024)
+        used_fb_memory.labels(host=hostname, device=gpu_id).set(mem_info.used / 1024)
 
-        await asyncio.sleep(1)
+        utilization = nvmlDeviceGetUtilizationRates(handle)
+        gpu_utilization.labels(host=hostname, device=gpu_id).set(utilization.gpu / 100.0)
+        memory_utilization.labels(host=hostname, device=gpu_id).set(utilization.memory / 100.0)
+
+        await asyncio.sleep(3)
 
 
 if __name__ == '__main__':
@@ -45,13 +40,13 @@ if __name__ == '__main__':
     device_count = nvmlDeviceGetCount()
     logging.info('%d devices found.', device_count)
 
+    tasks = []
     loop = asyncio.get_event_loop()
-
-    # Start up the server to expose metrics.
     prom.start_http_server(9200)
-    t0_value = 50
-    tasks = [loop.create_task(compute_gpu_stat(0)), loop.create_task(compute_gpu_stat(1))
-             ]
+
+    for i in range(device_count):
+        tasks.append(loop.create_task(compute_gpu_stat(i)))
+
     try:
         loop.run_forever()
     except KeyboardInterrupt:
