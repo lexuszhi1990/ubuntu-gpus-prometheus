@@ -1,4 +1,4 @@
-From nvidia/cuda:nvidia/cuda:9.0-base-ubuntu16.04
+From nvidia/cuda:9.0-base-ubuntu16.04
 MAINTAINER david lexuszhi1990@gmail.com
 
 RUN rm /etc/apt/sources.list.d/*.list
