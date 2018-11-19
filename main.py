@@ -4,7 +4,7 @@ import logging
 import asyncio
 import prometheus_client as prom
 from pynvml import *
-
+import random
 
 format = "%(asctime)s - %(levelname)s [%(name)s] %(threadName)s %(message)s"
 logging.basicConfig(level=logging.INFO, format=format)
@@ -30,7 +30,7 @@ async def compute_gpu_stat(gpu_id):
         gpu_utilization.labels(host=hostname, device=gpu_id).set(utilization.gpu / 100.0)
         memory_utilization.labels(host=hostname, device=gpu_id).set(utilization.memory / 100.0)
 
-        await asyncio.sleep(1)
+        await asyncio.sleep(random.random())
 
 
 if __name__ == '__main__':
