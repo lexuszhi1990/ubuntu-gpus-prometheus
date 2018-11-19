@@ -19,5 +19,3 @@ RUN pip3 install -i https://mirrors.aliyun.com/pypi/simple/ nvidia-ml-py3 promet
 
 WORKDIR /app
 ADD main.py /app
-
-CMD ['python3', 'main.py']
