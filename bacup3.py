@@ -15,8 +15,7 @@ used_fb_memory = prom.Gauge('gpu_used_fb_memory_mb', 'Allocated frame buffer mem
 gpu_utilization = prom.Gauge('gpu_utilization_pct', 'Percent of time over the past sample period ''during which one or more kernels was ''executing on the GPU.', ['host', 'device'])
 memory_utilization = prom.Gauge('gpu_mem_utilization_pct', 'Percent of time over the past sample ''period during which global (device) memory ''was being read or written', ['host', 'device'])
 
-with open('/host/etc/hostname', 'r') as f:
-    hostname = f.readline().strip()
+hostname = 'train22'
 
 pynvml.nvmlInit()
 print('Started with nVidia driver version = %s', pynvml.nvmlSystemGetDriverVersion())

@@ -2,7 +2,7 @@ From nvidia/cuda:9.0-base-ubuntu16.04
 MAINTAINER david lexuszhi1990@gmail.com
 
 RUN rm /etc/apt/sources.list.d/*.list
-RUN apt-get update && apt-get install apt-transport-https -y
+RUN apt-get update && apt-get install apt-transport-https vim -y
 
 # https://mirrors.tuna.tsinghua.edu.cn/help/ubuntu/
 RUN echo "deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial main restricted universe multiverse" > /etc/apt/sources.list
