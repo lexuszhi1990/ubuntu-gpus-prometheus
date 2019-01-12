@@ -32,7 +32,7 @@ async def compute_gpu_stat(gpu_id):
         gpu_utilization.labels(host=hostname, device=gpu_id).set(utilization.gpu / 100.0)
         memory_utilization.labels(host=hostname, device=gpu_id).set(utilization.memory / 100.0)
 
-        await asyncio.sleep(random.random())
+        # await asyncio.sleep(random.random())
 
 
 if __name__ == '__main__':
